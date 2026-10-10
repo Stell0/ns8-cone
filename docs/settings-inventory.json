@@ -1,0 +1,209 @@
+{
+  "c1_revision": "bcaf67bcefd024d0a14fb5e37c4a0ccd89af0a90",
+  "settings": [
+    {
+      "environment": "C1_AUDIENCE",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_BACKEND_TIMEOUT_S",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "backend_timeout_s"
+    },
+    {
+      "environment": "C1_CRASH_AFTER",
+      "classification": "unsupported",
+      "source": "src/c1/config.py",
+      "mapping": "excluded"
+    },
+    {
+      "environment": "C1_CURSOR_SECRET",
+      "classification": "generated secret",
+      "source": "src/c1/config.py",
+      "mapping": "private module file or provider registration"
+    },
+    {
+      "environment": "C1_ENABLE_PROBE_ROUTES",
+      "classification": "unsupported",
+      "source": "src/c1/config.py",
+      "mapping": "forced false"
+    },
+    {
+      "environment": "C1_EXPLORER_CLIENT_ID",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_EXPLORER_CLIENT_SECRET",
+      "classification": "generated secret",
+      "source": "src/c1/config.py",
+      "mapping": "private module file or provider registration"
+    },
+    {
+      "environment": "C1_EXPLORER_ENABLED",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "explorer_enabled"
+    },
+    {
+      "environment": "C1_EXPLORER_ORIGIN",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_EXPLORER_SESSION_IDLE_S",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "session_idle_s"
+    },
+    {
+      "environment": "C1_EXPLORER_SESSION_MAX_S",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "session_max_s"
+    },
+    {
+      "environment": "C1_FGA_MODEL",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_FGA_STORE",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_FGA_TOKEN",
+      "classification": "generated secret",
+      "source": "src/c1/config.py",
+      "mapping": "private module file or provider registration"
+    },
+    {
+      "environment": "C1_FGA_URL",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_INDEPENDENT_REVIEW",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "independent_review"
+    },
+    {
+      "environment": "C1_INSTANCE_ID",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_INSTANCE_IRI_BASE",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_ISSUER",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_ISSUER_ALIAS",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_ISSUER_CA_FILE",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "optional validated PEM upload, fixed container path"
+    },
+    {
+      "environment": "C1_KNOWLEDGE_DATABASE",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_LOCK_PATH",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_MAX_READABLE_SCOPES",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "max_readable_scopes"
+    },
+    {
+      "environment": "C1_ORGANIZATION",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_QUERY_CANDIDATE_LIMIT",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "query_candidate_limit"
+    },
+    {
+      "environment": "C1_QUERY_TIME_BUDGET_MS",
+      "classification": "editable",
+      "source": "src/c1/config.py",
+      "mapping": "query_time_budget_ms"
+    },
+    {
+      "environment": "C1_TERMINUS_PASSWORD",
+      "classification": "generated secret",
+      "source": "src/c1/config.py",
+      "mapping": "private module file or provider registration"
+    },
+    {
+      "environment": "C1_TERMINUS_URL",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_WORKFLOW_DATABASE",
+      "classification": "derived",
+      "source": "src/c1/config.py",
+      "mapping": "provider/bootstrap or persistent module identity"
+    },
+    {
+      "environment": "C1_CURSOR_SECRET_FILE",
+      "classification": "unsupported",
+      "source": "src/c1/config.py:secret_value",
+      "mapping": "Alternative upstream secret-file representation; this skeleton selects direct values in private Podman env files. If selected later, exact 0400/0440 non-symlink files are required inside the C1 container."
+    },
+    {
+      "environment": "C1_EXPLORER_CLIENT_SECRET_FILE",
+      "classification": "unsupported",
+      "source": "src/c1/config.py:secret_value",
+      "mapping": "Alternative upstream secret-file representation; this skeleton selects direct values in private Podman env files. If selected later, exact 0400/0440 non-symlink files are required inside the C1 container."
+    },
+    {
+      "environment": "C1_FGA_TOKEN_FILE",
+      "classification": "unsupported",
+      "source": "src/c1/config.py:secret_value",
+      "mapping": "Alternative upstream secret-file representation; this skeleton selects direct values in private Podman env files. If selected later, exact 0400/0440 non-symlink files are required inside the C1 container."
+    },
+    {
+      "environment": "C1_TERMINUS_PASSWORD_FILE",
+      "classification": "unsupported",
+      "source": "src/c1/config.py:secret_value",
+      "mapping": "Alternative upstream secret-file representation; this skeleton selects direct values in private Podman env files. If selected later, exact 0400/0440 non-symlink files are required inside the C1 container."
+    }
+  ]
+}

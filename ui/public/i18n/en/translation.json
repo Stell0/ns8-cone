@@ -24,7 +24,37 @@
         "title": "Settings",
         "configure_instance": "Configure {instance}",
         "save": "Save",
-        "test_field": "Test field"
+        "draft_help": "Settings are saved and can be reloaded. This development package cannot initialize C1 with the shared identity provider or verify its recovery state yet. C1 remains stopped and its application route is not published; saving a draft does not request a certificate.",
+        "host": "Application hostname",
+        "lets_encrypt": "Request a Let\u2019s Encrypt certificate",
+        "idp_provider": "Identity provider",
+        "user_domain": "User domain",
+        "select_provider": "Select an available provider",
+        "select_domain": "Select a user domain",
+        "explorer_enabled": "Enable Explorer",
+        "independent_review": "Require independent review",
+        "session_idle_s": "Session idle duration (seconds)",
+        "session_max_s": "Maximum session duration (seconds)",
+        "query_candidate_limit": "Query candidate limit",
+        "max_readable_scopes": "Maximum readable scopes",
+        "query_time_budget_ms": "Query time budget (milliseconds)",
+        "backend_timeout_s": "Backend timeout (seconds)",
+        "issuer_ca": "Optional private issuer CA (PEM)",
+        "issuer_ca_help": "Leave blank to preserve the saved CA bundle. TLS verification stays enabled.",
+        "clear_ca": "Remove saved private issuer CA",
+        "ca_present": "A private issuer CA bundle is saved.",
+        "enrollment_pending": "Initial administrator enrollment will use a separate verified setup flow when the upstream contract is available.",
+        "save_draft": "Save deployment draft",
+        "draft_saved": "Deployment draft saved. Production setup remains blocked.",
+        "diagnostics": "Derived values",
+        "issuer": "Issuer",
+        "audience": "API audience",
+        "instance_id": "Persistent C1 instance ID",
+        "session_max_before_idle": "Maximum session duration must be at least the idle duration.",
+        "provider_unavailable": "The selected identity provider is unavailable.",
+        "domain_unavailable": "The selected user domain is unavailable.",
+        "invalid_issuer": "The provider does not advertise a valid HTTPS issuer.",
+        "invalid_ca": "The issuer CA must be a valid PEM certificate bundle."
     },
     "about": {
         "title": "About"
@@ -40,7 +70,9 @@
         "get-name": "Get name",
         "list-backup-repositories": "List backup repositories",
         "list-backups": "List backups",
-        "list-installed-modules": "List installed modules"
+        "list-installed-modules": "List installed modules",
+        "list-identity-options": "List identity providers and domains",
+        "get-integration-status": "Get setup state"
     },
     "error": {
         "error": "Error",
@@ -53,5 +85,15 @@
         "404": "Resource not found",
         "cannot_retrieve_module_info": "Cannot retrieve module info",
         "cannot_retrieve_installed_modules": "Cannot retrieve installed modules"
+    },
+    "integration": {
+        "blocked": "Production setup blocked",
+        "status_help": "Backend service health does not mean C1 setup is complete. Authentication, initialization and recovery await verified upstream support.",
+        "status_error": "Could not read setup state"
+    },
+    "administration": {
+        "title": "Administration",
+        "pending": "C1 is unavailable until authentication and initial-administrator enrollment are verified.",
+        "help": "When setup is ready, this page will open the existing C1 Explorer in a separate browser tab. NS8 administrator access does not grant C1 knowledge permissions."
     }
 }

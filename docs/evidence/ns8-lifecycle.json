@@ -1,0 +1,18 @@
+{
+  "installation": "PASS",
+  "invalid_settings_and_unavailable_provider": "PASS",
+  "no_published_routes": "PASS",
+  "ordered_backend_readiness": "PASS",
+  "private_backend_ports": "PASS",
+  "private_permissions": "PASS",
+  "production_and_backup_guards": "PASS",
+  "removal_cone6": "PASS",
+  "removal_cone7": "PASS",
+  "service_restart_and_identity_preservation": "PASS",
+  "state": "PASS",
+  "two_instance_identity_isolation": "PASS",
+  "checked_at": "2026-10-05",
+  "core_version": "3.21.0",
+  "transport": "real NS8 rootless modules with temporary loopback registry",
+  "initial_failure": "Unsupported rootless CPU controller; removed CPU limits and qualified the corrected units."
+}

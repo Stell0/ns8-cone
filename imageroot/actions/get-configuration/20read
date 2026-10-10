@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-
-#
-# Copyright (C) 2023 Nethesis S.r.l.
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-
 import json
 import sys
-import agent
+from cone_runtime import status
+from cone_state import private_dir, read_json, contracts, DEFAULTS, state_lock
 
-config = {}
-
-json.dump(config, fp=sys.stdout)
+with state_lock() as private:
+    deployment = read_json(private / "deployment.json", {})
+    identity = read_json(private / "identity.json", {})
+    result = {"settings": deployment.get("settings", DEFAULTS), "configured": False,
+              "state": "blocked", "blockers": contracts()["blockers"],
+              "issuer": deployment.get("issuer", ""), "audience": identity.get("audience", ""),
+              "instance_id": identity.get("instance_id", ""),
+              "issuer_alias": identity.get("issuer_alias", ""),
+              "secrets_present": (private / "credentials.json").is_file(),
+              "issuer_ca_present": (private / "issuer-ca.pem").is_file(),
+              "administration_url": ""}
+live = status()
+result.update({k: live[k] for k in ("configured", "state", "blockers", "administration_url")})
+json.dump(result, sys.stdout)

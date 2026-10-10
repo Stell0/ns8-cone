@@ -1,8 +1,81 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "configure-module input",
-    "$id": "http://schema.nethserver.org/kickstart/configure-module-input.json",
-    "description": "Configure kickstart",
-    "examples": [],
-    "type": "object"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "C1 deployment settings (draft only at this baseline)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "host",
+    "lets_encrypt",
+    "idp_provider",
+    "user_domain",
+    "explorer_enabled",
+    "independent_review",
+    "session_idle_s",
+    "session_max_s",
+    "query_candidate_limit",
+    "max_readable_scopes",
+    "query_time_budget_ms",
+    "backend_timeout_s"
+  ],
+  "properties": {
+    "host": {
+      "type": "string",
+      "maxLength": 253,
+      "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?$"
+    },
+    "lets_encrypt": {
+      "type": "boolean"
+    },
+    "idp_provider": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*[0-9]+$"
+    },
+    "user_domain": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 253,
+      "pattern": "^[a-z0-9][a-z0-9.-]*$"
+    },
+    "explorer_enabled": {
+      "type": "boolean"
+    },
+    "independent_review": {
+      "type": "boolean"
+    },
+    "session_idle_s": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 86400
+    },
+    "session_max_s": {
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 604800
+    },
+    "query_candidate_limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5000
+    },
+    "max_readable_scopes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500
+    },
+    "query_time_budget_ms": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 30000
+    },
+    "backend_timeout_s": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 30
+    },
+    "issuer_ca_pem": {
+      "type": "string",
+      "maxLength": 65536,
+      "description": "Optional PEM CA bundle; omitted preserves the saved bundle, empty clears it. Never disables TLS verification."
+    }
+  }
 }

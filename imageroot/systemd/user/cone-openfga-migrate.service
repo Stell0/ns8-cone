@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[Unit]
+StartLimitIntervalSec=120
+StartLimitBurst=3
+Description=C1 OpenFGA database migrations
+BindsTo=cone.service
+Requires=cone-postgres.service
+After=cone.service cone-postgres.service
+Before=cone-openfga.service
+
+[Service]
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=180
+ExecStart=/usr/bin/podman run --user=0 --rm --pod-id-file=%t/cone.pod-id --name=cone-openfga-migrate --replace --env-file=private/openfga.env ${OPENFGA_IMAGE} migrate

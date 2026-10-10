@@ -1,100 +1,47 @@
-# ns8-kickstart
+# ns8-cone
 
-This is a template module for [NethServer 8](https://github.com/NethServer/ns8-core).
-To start a new module from it:
+C1 for NethServer 8, using the shared NS8 IdP and upstream External OIDC
+Provider Support (M14c). The runtime is the unmodified, qualified C1
+`0.1.0rc2` release artifact; [integration-lock.json](integration-lock.json)
+records its source revision, archive checksum and configuration digest.
 
-1. Click on [Use this template](https://github.com/NethServer/ns8-kickstart/generate).
-   Name your repo with `ns8-` prefix (e.g. `ns8-mymodule`). 
-   Do not end your module name with a number, like ~~`ns8-baaad2`~~!
+The module retains private credentials and stable instance identity, registers
+its own confidential IdP client through native actions, initializes dedicated
+TerminusDB/OpenFGA persistence through public C1 commands, and exposes guarded
+Explorer setup over HTTPS. Only an operator-approved exact OIDC identity may
+confirm initial administrator enrollment. Readiness comes from the live C1
+consistency/readiness contract, never a bootstrap receipt.
 
-1. Clone the repository, enter the cloned directory and
-   [configure your GIT identity](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup#_your_identity)
+**Development integration:** upstream Gate A/B qualification does not qualify
+NS8 lifecycle or recovery automatically. Cross-module automatic restore remains unavailable;
+same-instance protected recovery uses `cone-recovery` and must pass its own
+real-service verification before production use.
 
-1. Rename some references inside the repo:
-   ```
-   modulename=$(basename $(pwd) | sed 's/^ns8-//')
-   git mv imageroot/systemd/user/kickstart.service imageroot/systemd/user/${modulename}.service
-   git mv tests/kickstart.robot tests/${modulename}.robot
-   sed -i "s/kickstart/${modulename}/g" $(find .github/ .devcontainer/ * -type f)
-   git commit -a -m "Repository initialization"
-   ```
+Read [integration contracts](docs/integration-contracts.md),
+[settings inventory](docs/settings-inventory.md), and
+[verification results](docs/verification.md). Historical upstream proposals under
+[upstream](upstream/README.md) describe earlier requirements, not current capabilities.
 
-1. Edit this `README.md` file, by replacing this section with your module
-   description
+Build with `bash build-images.sh` (Buildah, curl, Python, Node/Corepack). It
+verifies and imports the published Docker archive instead of rebuilding C1.
+The module image is `ghcr.io/stell0/cone:<module-tag>`; the separate C1 runtime
+retains the released bytes. Only linux/amd64 is supported by the pinned artifact.
 
-1. Adjust `.github/workflows` to your needs. `clean-registry.yml` might
-   need the proper list of image names to work correctly. Unused workflows
-   can be disabled from the GitHub Actions interface.
+Install with native `add-module`/`update-module`, then call `configure-module`.
+Inspect `get-configuration` and `get-integration-status`. Pending setup links to
+`/explorer/login`; completed installations link to `/explorer/`. Approve the
+exact administrator issuer/subject locally through the public C1 enrollment
+command, then have that user sign in and explicitly confirm. Additional grants
+use normal authorized C1 administration.
 
-1. Commit and push your local changes
+Run local checks:
 
-## Install
+```sh
+python3 -m unittest discover -s tests/unit -v
+(cd ui && NODE_OPTIONS=--openssl-legacy-provider corepack yarn build)
+(cd ui && corepack yarn test:settings)
+bash -n build-images.sh
+```
 
-Instantiate the module with:
-
-    add-module ghcr.io/nethserver/kickstart:latest 1
-
-The output of the command will return the instance name.
-Output example:
-
-    {"module_id": "kickstart1", "image_name": "kickstart", "image_url": "ghcr.io/nethserver/kickstart:latest"}
-
-## Configure
-
-Let's assume that the kickstart instance is named `kickstart1`.
-
-Launch `configure-module`, by setting the following parameters:
-- `<MODULE_PARAM1_NAME>`: <MODULE_PARAM1_DESCRIPTION>
-- `<MODULE_PARAM2_NAME>`: <MODULE_PARAM2_DESCRIPTION>
-- ...
-
-Example:
-
-    api-cli run module/kickstart1/configure-module --data '{}'
-
-The above command will:
-- start and configure the kickstart instance
-- (describe configuration process)
-- ...
-
-Send a test HTTP request to the kickstart backend service:
-
-    curl http://127.0.0.1/kickstart/
-
-## Smarthost setting discovery
-
-Some configuration settings, like the smarthost setup, are not part of the
-`configure-module` action input: they are discovered by looking at some
-Redis keys.  To ensure the module is always up-to-date with the
-centralized [smarthost
-setup](https://nethserver.github.io/ns8-core/core/smarthost/) every time
-kickstart starts, the command `bin/discover-smarthost` runs and refreshes
-the `state/smarthost.env` file with fresh values from Redis.
-
-Furthermore if smarthost setup is changed when kickstart is already
-running, the event handler `events/smarthost-changed/10reload_services`
-restarts the main module service.
-
-See also the `systemd/user/kickstart.service` file.
-
-This setting discovery is just an example to understand how the module is
-expected to work: it can be rewritten or discarded completely.
-
-## Uninstall
-
-To uninstall the instance:
-
-    remove-module --no-preserve kickstart1
-
-## Running tests locally
-
-This module uses the NS8 standard testing infrastructure. For instructions on how to run the test suite locally, refer to the [Running tests locally](https://github.com/NethServer/ns8-github-actions/blob/v1/README.md#running-tests-locally) section of the ns8-github-actions README.
-
-## UI translation
-
-Translated with [Weblate](https://hosted.weblate.org/projects/ns8/).
-
-To setup the translation process:
-
-- add [GitHub Weblate app](https://docs.weblate.org/en/latest/admin/code-hosting.html#code-hosting-github-notifications) to your repository
-- add your repository to [hosted.weblate.org](https://hosted.weblate.org) or ask a NethServer developer to add it to ns8 Weblate project
+Local tests cannot establish live browser authentication or recoverability.
+Record PASS, FAIL and NOT_RUN separately in the verification report.

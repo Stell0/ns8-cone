@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+import sys
+import agent
+from agent.ldapproxy import Ldapproxy
+providers = agent.list_service_providers(agent.redis_connect(use_replica=True), "oidc", "http")
+json.dump({"providers": [{"module_id": p["module_id"], "host": p.get("host", ""),
+                         "module_uuid": p["module_uuid"]} for p in providers],
+           "domains": Ldapproxy().get_domains_list()}, sys.stdout)

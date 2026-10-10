@@ -1,0 +1,10 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+exec 1>&2
+set -eu
+if test -s "$AGENT_STATE_DIR/private/c1.env"; then
+  systemctl --user daemon-reload
+  systemctl --user start cone.service cone-postgres.service cone-terminusdb.service cone-openfga-migrate.service cone-openfga.service
+  runagent check-production-contract
+  systemctl --user start cone-app.service
+fi

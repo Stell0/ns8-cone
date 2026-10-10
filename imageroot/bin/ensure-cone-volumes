@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+from cone_state import private_dir, atomic_write, env_text
+p = private_dir() / 'volumes.env'
+if not p.exists():
+    atomic_write(p, env_text({'CONE_POSTGRES_VOLUME':'cone-pgdata', 'CONE_TERMINUS_VOLUME':'cone-terminus-data'}))

@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+from cone_runtime import image, run
+from cone_state import private_dir
+if (private_dir() / 'restoring.json').exists():
+    raise RuntimeError('Recovery requires explicit verification and release')
+contract = json.loads(run(['podman', 'run', '--rm', '--network=none', '--read-only',
+    '--user=10001:10001', '--entrypoint=/opt/c1/bin/c1-admin', image(), 'application', 'contract']))
+if not contract['capabilities']['gate_a_qualified'] or 'c1-v1' not in contract['qualified_token_profiles']:
+    raise RuntimeError('Released external OIDC contract is unavailable')

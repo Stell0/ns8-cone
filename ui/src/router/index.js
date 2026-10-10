@@ -11,6 +11,11 @@ Vue.use(VueRouter);
 
 const routes = [
   {
+    path: "/administration",
+    name: "Administration",
+    component: () => import("../views/Administration.vue"),
+  },
+  {
     path: "/",
     name: "Status",
     component: Status,

@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""Bounded private-container probes. No fixed startup sleeps or secret arguments."""
+import subprocess
+import sys
+import time
+
+probes = {
+    "postgres": ["podman", "exec", "cone-postgres", "pg_isready", "-h", "127.0.0.1", "-U", "openfga", "-d", "openfga"],
+    "openfga": ["podman", "exec", "cone-openfga", "/usr/local/bin/grpc_health_probe", "-addr=127.0.0.1:8081"],
+    "terminusdb": ["podman", "exec", "cone-terminusdb", "swipl", "-q", "-g",
+        "use_module(library(http/http_open)),getenv('TERMINUSDB_ADMIN_PASS',P),setup_call_cleanup(http_open('http://127.0.0.1:6363/api/info',S,[authorization(basic(admin,P)),timeout(4)]),read_string(S,_,_),close(S)),halt"],
+}
+command = probes[sys.argv[1]]
+deadline = time.monotonic() + 120
+while time.monotonic() < deadline:
+    try:
+        response = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=8)
+        if response.returncode == 0:
+            sys.exit(0)
+    except subprocess.TimeoutExpired:
+        pass
+    time.sleep(min(1, max(0, deadline - time.monotonic())))
+print("Backend readiness timed out: " + sys.argv[1], file=sys.stderr)
+sys.exit(4)

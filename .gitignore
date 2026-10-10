@@ -104,3 +104,8 @@ dist
 .tern-port
 
 tests/outputs/
+
+__pycache__/
+*.pyc
+ui/.yarn/
+ui/.pnp.*

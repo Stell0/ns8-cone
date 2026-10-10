@@ -1,0 +1,64 @@
+{
+  "checked_at": "2026-10-10",
+  "host": "makako.sf.nethserver.net",
+  "module": "cone8",
+  "module_image": "localhost:40088/cone:m14c-20261010g",
+  "module_archive_sha256": "0316daaceaf7544ccb39dbc407e7e0e337b8aab3577598afb3d8f87492641aa0",
+  "module_archive_location": "AGENT_STATE_DIR/artifacts/cone-m14c-20261010g.oci.tar",
+  "c1_version": "0.1.0rc2",
+  "c1_revision": "d6d9f8614c8dfd52591ec1d2402438f7b6a626f7",
+  "c1_configuration_digest": "sha256:d3d2f8c47461865dfecda5f4b9c27eb5d07c1de0d6c7f52b135a2fb750738127",
+  "core_version": "3.21.0",
+  "administrator_account": "stefano",
+  "enrollment": "explicit_user_confirmation_complete",
+  "administrator_grants": {
+    "instance#access_admin": 1,
+    "instance#schema_admin": 1
+  },
+  "results": {
+    "native_update": "PASS",
+    "artifact_integrity": "PASS",
+    "identity_credentials_preserved": "PASS",
+    "oidc_metadata": "PASS",
+    "real_browser_login": "PASS",
+    "real_browser_enrollment": "PASS",
+    "user_confirmed_five_explorer_pages": "PASS",
+    "consistency": "PASS",
+    "live_readyz": "PASS",
+    "api_missing_invalid_bearer_forwarded_headers": "PASS",
+    "exclusive_initialization_retry": "PASS",
+    "backup_snapshot_checksums": "PASS",
+    "backup_cleanup_restart": "PASS",
+    "unit_tests_15": "PASS",
+    "native_encrypted_backup_transport": "NOT_RUN",
+    "fresh_node_native_restore": "NOT_RUN",
+    "full_knowledge_changeset_context_workflow": "NOT_RUN",
+    "node_reboot": "NOT_RUN",
+    "released_archive_build_script": "PASS"
+  },
+  "maintenance": {
+    "backup_manifest_version": 2,
+    "artifact_modes": "0600",
+    "directory_mode": "0700",
+    "external_idp_state_included": false
+  },
+  "site_changes": [
+    "IdP module-specific pasta loopback mapping",
+    "C1 pod same-node IdP host-gateway alias with TLS verification",
+    "adapter direct readiness timeout increased from 3 to 15 seconds"
+  ],
+  "preserved": [
+    "instance identity",
+    "issuer alias and subject namespace",
+    "backend identifiers",
+    "credentials",
+    "independent_review=false existing setting"
+  ],
+  "operational": true,
+  "production_recovery_qualified": false,
+  "cleanup": {
+    "temporary_transfer_registry": "removed",
+    "deployed_images": "retained in module cache",
+    "previous_idle_root_c1_proof_stack": "stopped; volumes retained"
+  }
+}

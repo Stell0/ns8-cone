@@ -1,0 +1,44 @@
+{
+  "image": "localhost:39903/cone:settings-aeba8c2b46d8",
+  "snapshot": "aeba8c2b46d8b08459d8ad5e48921a03c37252785f32e6c6da912f6041723061",
+  "configuration_round_trip": "PASS",
+  "identity_and_credentials_preserved": true,
+  "guard_preserved": true,
+  "settings": {
+    "backend_timeout_s": 5,
+    "explorer_enabled": true,
+    "host": "cone.makako.sf.nethserver.net",
+    "idp_provider": "idp1",
+    "independent_review": false,
+    "lets_encrypt": true,
+    "max_readable_scopes": 500,
+    "query_candidate_limit": 5000,
+    "query_time_budget_ms": 10000,
+    "session_idle_s": 1800,
+    "session_max_s": 28800,
+    "user_domain": "makako.sf.nethserver.net"
+  },
+  "issuer": "https://idp.makako.sf.nethserver.net/realms/makako.sf.nethserver.net",
+  "containers": [],
+  "route_published": false,
+  "served_ui_asset": "js/app~748942c6.d81d32ea.js",
+  "served_ui_matches_installed": "PASS",
+  "temporary_registry_removed": true,
+  "certificate": {
+    "fqdn": "cone.makako.sf.nethserver.net",
+    "obtained": false,
+    "type": "selfsigned",
+    "lets_encrypt": false,
+    "failure": "ACME registered-domain issuance rate limit (HTTP 429)",
+    "retry_after_utc": "2026-10-06T07:30:06Z"
+  },
+  "tests": {
+    "settings_dom": {
+      "passed": 3
+    },
+    "backend_unit": {
+      "passed": 10
+    },
+    "frontend_build": "PASS"
+  }
+}

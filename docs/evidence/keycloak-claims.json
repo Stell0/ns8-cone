@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-10-05",
+  "image": "quay.io/keycloak/keycloak@sha256:82a77884f3af238beab1e7afd63b5f530e1b5c0590bd7aa60b40a40463e29b2c",
+  "idp_candidate_revision": "3e801d22e307142e9cc989def400b6615bd8dc02",
+  "transport": "isolated loopback HTTP fixture; not TLS or cross-node qualification",
+  "signed_access_token": "PASS",
+  "id_token_claim_excluded": "PASS",
+  "code_pkce": "PASS",
+  "refresh": "PASS",
+  "password_grant_denied": "PASS",
+  "client_credentials_denied": "PASS",
+  "mapper_idempotency": "PASS",
+  "unrelated_mapper_preserved": "PASS",
+  "secret_preserved": "PASS",
+  "disabled_state_preserved": "PASS",
+  "owned_claim_removal": "PASS",
+  "initial_failure": "Keycloak adds userinfo.token.claim=false to audience mappers; corrected ownership normalization and added regression coverage.",
+  "test_harness_correction": "CookieJar was adjusted only for the isolated localhost fixture to handle Keycloak Secure login cookies as a loopback browser does.",
+  "ci": "https://github.com/NethServer/ns8-idp/actions/runs/37345211953",
+  "ci_result": "SUCCESS"
+}

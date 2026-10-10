@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import os
+from cone_runtime import container_args, image
+runtime = os.environ['XDG_RUNTIME_DIR']
+args = container_args() + ['--detach', '--memory=512m',
+        '--conmon-pidfile=' + runtime + '/cone-app.pid',
+        '--cidfile=' + runtime + '/cone-app.ctr-id', '--cgroups=no-conmon',
+        '--replace', '--name=cone-app', image()]
+os.execvp(args[0], args)

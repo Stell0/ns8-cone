@@ -1,19 +1,20 @@
 {
-  "name": "kickstart",
+  "name": "C1",
   "description": {
-    "en": "My kickstart module"
+    "en": "C1 knowledge framework \u2014 development integration; production initialization blocked"
   },
-  "categories": [],
+  "categories": [
+    "collaboration"
+  ],
   "authors": [
     {
-      "name": "Name Surname",
-      "email": "author@yourmail.org"
+      "name": "Stell0"
     }
   ],
   "docs": {
-    "documentation_url": "https://docs.kickstart.com/",
-    "bug_url": "https://github.com/NethServer/dev",
-    "code_url": "https://github.com/author/ns8-kickstart"
+    "documentation_url": "https://github.com/Stell0/ns8-cone#readme",
+    "bug_url": "https://github.com/Stell0/ns8-cone/issues",
+    "code_url": "https://github.com/Stell0/ns8-cone"
   },
-  "source": "ghcr.io/nethserver/kickstart"
+  "source": "ghcr.io/stell0/cone"
 }

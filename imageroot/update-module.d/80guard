@@ -1,0 +1,5 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+exec 1>&2
+set -eu
+systemctl --user stop cone-app.service

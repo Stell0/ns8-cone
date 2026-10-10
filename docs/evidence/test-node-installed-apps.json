@@ -1,0 +1,37 @@
+{
+  "modules": {
+    "idp": {
+      "module_id": "idp1",
+      "image": "localhost/idp:claims-3e801d22",
+      "state": "installed-unconfigured",
+      "claim_extension": "present",
+      "source_revision": "3e801d22e307142e9cc989def400b6615bd8dc02",
+      "verification": "PASS"
+    },
+    "cone": {
+      "module_id": "cone8",
+      "image": "localhost/cone:dev-5f9a0e77e966",
+      "state": "installed-blocked",
+      "blockers": [
+        "IDP-CLAIMS: claim extension is not released or verified",
+        "C1-NS8-01: external-IdP bootstrap unavailable",
+        "C1-NS8-02: verified explicit administrator enrollment unavailable",
+        "C1-NS8-03: retry-safe external initialization unavailable",
+        "C1-NS8-04: deployment-independent maintenance contract unverified",
+        "C1-NS8-05: external-IdP recovery unavailable",
+        "AGENT-OAUTH: no compatible user-authorized client integration verified",
+        "RELEASE-TESTS: real NS8 interoperability and recovery not run"
+      ],
+      "verification": "PASS"
+    }
+  },
+  "no_routes_published": true,
+  "state": "complete",
+  "transfer_registry_removed": true,
+  "runtime_images": {
+    "idp_keycloak": "ghcr.io/nethserver/idp-keycloak@sha256:a5cd19194f399d313f3f6732c573e1cd0255fa37ac0cf444062ea1b34b394838",
+    "idp_postgres": "docker.io/library/postgres:18.6-trixie@sha256:0377e72c5289ed2f98cf61b1a9c2db9eb9d300317fe14244492fbc94343b3d04",
+    "c1_source_revision": "bcaf67bcefd024d0a14fb5e37c4a0ccd89af0a90",
+    "cone_snapshot": "5f9a0e77e9667f844946c53b120ecfc8cf73c04cd8ac41b58e1251414658190d"
+  }
+}

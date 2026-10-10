@@ -1,0 +1,110 @@
+diff --git a/PLAN.md b/PLAN.md
+index 9134063..c266bce 100644
+--- a/PLAN.md
++++ b/PLAN.md
+@@ -1,6 +1,6 @@
+ # PLAN.md — C1 MVP roadmap
+ 
+-**Status:** M00–M13 and M09a VERIFIED. M14 IN_PROGRESS. M15–M18 remain unimplemented.
++**Status:** M00–M13 and M09a VERIFIED. M14 IN_PROGRESS. M15–M18 remain unimplemented. M19 is a NOT_PLANNED external-IdP integration proposal.
+ **Baseline:** C1 project specification v0.2 and MVP architecture v0.2, plus the software-code/documentation use-case extension discussed afterward.  
+ **Execution policy:** each milestone is planned separately before implementation. This roadmap defines outcomes and tests, not every milestone's internal task breakdown.  
+ **Development instructions:** [AGENTS.md](AGENTS.md).
+@@ -91,6 +91,7 @@ The order below deliberately separates the three software-agent workflows. Each
+ | M16 | Decision Gate (optional extension) | M14 | Generic bounded decision interface with optional Jev/Kev providers and calibrated evaluation | NOT_PLANNED |
+ | M17 | Non-generative enrichment (optional extension) | M16 | Reviewed entity/type/keyword/resolution proposals from deterministic candidates plus optional bounded decisions | NOT_PLANNED |
+ | M18 | Adaptive hybrid context (optional extension) | M15, M16 | Optional semantic/gated seed selection feeding deterministic graph reconstruction with bounded sufficiency retries | NOT_PLANNED |
++| M19 | External-IdP deployment integration (proposal) | M13 | Verified external identity bootstrap and guarded deployment-independent recovery | NOT_PLANNED |
+ 
+ The baseline's four broad delivery phases are decomposed here rather than discarded: foundations in M00–M03; durable knowledge in M04–M06; context in M07 and M08–M11; Explorer/operations in M12–M13. M14 establishes a post-release benchmark baseline. M15–M18 are optional extensions: none is required for the C1 release contract or for operation of the canonical deterministic path.
+ 
+@@ -650,6 +651,32 @@ Once the secured API exists, routine fixture ingestion uses it. Direct backend a
+ 
+ ---
+ 
++## M19 — External-IdP deployment integration (proposed, unimplemented)
++
++**Status:** NOT_PLANNED. Requirements proposal only; no implementation approval,
++commands or new environment APIs are implied. This does not reopen M00–M13.
++
++**Goal:** permit C1 to be initialized and recovered under an independently managed
++OIDC provider and deployment supervisor without weakening identity, authorization,
++review or recovery safeguards. See `docs/milestones/M19.md` for the integration
++requirements and the existing command capabilities to inspect first.
++
++- **C1-NS8-01:** initialize application and authorization state without creating an
++  IdP realm, users or clients.
++- **C1-NS8-02:** grant first-administrator roles only to an explicitly approved,
++  verified issuer/subject identity; never first login, username/email inference or
++  infrastructure administrator status.
++- **C1-NS8-03:** detect complete and partial initialization and retry without
++  duplicated stores, identity changes or resetting existing application state.
++- **C1-NS8-04:** expose necessary consistency and recovery maintenance through a
++  supported deployment-independent command contract; reuse existing public CLI
++  operations where they already satisfy it, without private imports.
++- **C1-NS8-05:** recover independently of shared IdP data, detect incompatible
++  principal namespaces and retain a verified, explicitly accepted recovery guard.
++
++Packaging may proceed while M19 is pending. Production initialization remains
++blocked until a suitable upstream release implements and verifies these contracts.
++
+ ## 5. Acceptance register and milestone ownership
+ 
+ A01–A17 retain the v0.2 acceptance IDs and intent. A18–A22 carry the accepted software-use-case discussion into this roadmap. Entries below are summaries for navigation; the referenced source and milestone tests preserve their required detail.
+diff --git a/docs/milestones/M19.md b/docs/milestones/M19.md
+new file mode 100644
+index 0000000..a20118a
+--- /dev/null
++++ b/docs/milestones/M19.md
+@@ -0,0 +1,51 @@
++# M19 — External-IdP deployment integration requirements (proposal)
++
++Status: **NOT_PLANNED**. This is a requirements proposal, not an approved
++implementation plan. Baseline inspected: `bcaf67bcefd024d0a14fb5e37c4a0ccd89af0a90`.
++M00–M13 stay completed; M14/M14a work and optional M15–M18 are unchanged.
++
++The requesting deployment is NethServer 8's ns8-cone with the independently
++managed ns8-idp. C1 owns authorization, bootstrap semantics, consistency and
++recovery safeguards. The module owns containers, configuration, routing, domain
++binding, provider registration and backup transport. No packaging runtime patch,
++private import, authentication proxy or replacement administration UI is allowed.
++
++| Requirement | Acceptance condition |
++| --- | --- |
++| C1-NS8-01 external IdP | Initialize C1 knowledge/workflow and authorization state without IdP realm/user/client creation, Keycloak administrator credentials or ownership of Compose |
++| C1-NS8-02 explicit administrator | Verify the intended existing issuer/subject using a supported enrollment contract, record explicit approval, and grant only the required initial roles; reject first-arbitrary-login, username/email inference and infrastructure-admin authority |
++| C1-NS8-03 retry safety | Distinguish clean, partially initialized and complete states; retry after failure without creating duplicate stores/databases, resetting existing grants/content or changing stable instance/IRI/issuer namespace |
++| C1-NS8-04 public maintenance | Qualify existing CLI state/consistency/recovery operations for an externally supervised deployment, with explicit inputs, bounded failures and machine-readable sanitized outputs; request new functionality only for demonstrated gaps |
++| C1-NS8-05 external recovery | Restore knowledge/workflow and authorization persistence independently of shared IdP backups; preserve stable application identity, reject incompatible issuer/subject namespaces and keep publication guarded until verification and explicit security-snapshot acceptance |
++
++## Reuse existing capabilities first
++
++Inspect the public CLI operations `c1-admin internal state`, `consistency`,
++`guard-set`, `dr-verify` and `dr-release` before adding equivalents. They are
++existing command names at this baseline, but have not been qualified for NS8.
++The reference host backup stops its single writer and TerminusDB to export
++storage, dumps OpenFGA and private Keycloak databases, and creates checksums.
++Retain supported backend consistency procedures and the C1 guard semantics;
++allow the deployment supervisor to supply a consistent backup set without
++requiring ownership of Keycloak or reference networking.
++
++The baseline internal bootstrap creates the private realm and user and rejects
++an existing realm. It does not satisfy external enrollment or initialization retry
++safety. Do not extract its private internals into packaging or weaken token
++validation: issuer, audience, signature, expiry, access-token purpose and required
++`c1_principal_kind` remain mandatory. The shared provider supplies a constrained
++`human` claim for user-authorized clients.
++
++## Required verification in the later implementation plan
++
++Clean initialization with an existing external provider; explicit identity
++verification and wrong-issuer/subject rejection; retry after each durable partial
++step; idempotent complete retry; namespace mismatch; preserved store/model and
++instance identity; integrity/consistency failures; corrupt/partial backup; guarded
++restore onto another infrastructure instance; failed and successful guard release
++with explicit acceptance; permission revocations and independent-review behavior.
++Use real C1, backends and provider. Do not mark mock checks as interoperability.
++
++No command name, new configuration variable or verification receipt format is
++proposed here. Define those contracts in a separately approved implementation
++plan, and ship them upstream before production packaging enables initialization.

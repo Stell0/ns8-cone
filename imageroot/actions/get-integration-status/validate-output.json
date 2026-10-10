@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "configured",
+    "authentication_ready",
+    "bootstrap_ready",
+    "state",
+    "blockers",
+    "versions",
+    "idp_provider",
+    "user_domain",
+    "administration_url"
+  ],
+  "properties": {
+    "configured": {
+      "type": "boolean"
+    },
+    "authentication_ready": {
+      "type": "boolean"
+    },
+    "bootstrap_ready": {
+      "type": "boolean"
+    },
+    "state": {
+      "type": "string"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "versions": {
+      "type": "object",
+      "required": [
+        "c1",
+        "c1_revision"
+      ],
+      "properties": {
+        "c1": {
+          "type": "string"
+        },
+        "c1_revision": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "idp_provider": {
+      "type": "string"
+    },
+    "user_domain": {
+      "type": "string"
+    },
+    "administration_url": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

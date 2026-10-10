@@ -1,0 +1,7 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Fail before Restic can overwrite persistent state. Native restore transport
+# requires separate qualification; upstream Gate B alone does not qualify it.
+exec 1>&2
+printf '%s\n' 'Native NS8 restore transport is not qualified. Use the documented guarded C1 recovery procedure; automatic restore is unavailable.'
+exit 4

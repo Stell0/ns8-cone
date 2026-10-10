@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[Unit]
+StartLimitIntervalSec=120
+StartLimitBurst=3
+Description=C1 terminusdb
+BindsTo=cone.service
+After=cone.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%E/state/environment
+EnvironmentFile=%E/state/private/volumes.env
+WorkingDirectory=%E/state
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=150
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/cone-terminusdb.pid %t/cone-terminusdb.ctr-id
+ExecStart=/usr/bin/podman run --user=0 --detach --memory=512m --conmon-pidfile=%t/cone-terminusdb.pid --cidfile=%t/cone-terminusdb.ctr-id --cgroups=no-conmon --pod-id-file=%t/cone.pod-id --replace --name=cone-terminusdb --volume=${CONE_TERMINUS_VOLUME}:/app/terminusdb/storage:Z --env-file=private/terminusdb.env ${TERMINUSDB_SERVER_IMAGE}
+ExecStartPost=runagent wait-backend terminusdb
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/cone-terminusdb.ctr-id -t 30
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile=%t/cone-terminusdb.ctr-id
+PIDFile=%t/cone-terminusdb.pid
+Type=forking

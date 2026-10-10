@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[Unit]
+StartLimitIntervalSec=120
+StartLimitBurst=3
+Description=C1 private backend pod
+Before=cone-postgres.service cone-terminusdb.service cone-openfga-migrate.service cone-openfga.service cone-app.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/cone.pid %t/cone.pod-id
+ExecStartPre=/usr/bin/podman pod create --infra-conmon-pidfile=%t/cone.pid --pod-id-file=%t/cone.pod-id --name=cone $CONE_IDP_HOST_ALIAS --userns=keep-id:uid=10001,gid=10001 --network=pasta --publish=127.0.0.1:${TCP_PORT}:8000 --replace
+ExecStart=/usr/bin/podman pod start --pod-id-file=%t/cone.pod-id
+ExecStop=/usr/bin/podman pod stop --ignore --pod-id-file=%t/cone.pod-id -t 20
+ExecStopPost=/usr/bin/podman pod rm --ignore -f --pod-id-file=%t/cone.pod-id
+PIDFile=%t/cone.pid
+Type=forking
+
+[Install]
+WantedBy=default.target

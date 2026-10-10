@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[Unit]
+StartLimitIntervalSec=120
+StartLimitBurst=3
+Description=C1 API and Explorer with guarded enrollment/recovery
+BindsTo=cone.service
+Requires=cone-terminusdb.service cone-openfga.service
+After=cone.service cone-terminusdb.service cone-openfga.service
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=150
+ExecStartPre=runagent check-production-contract
+ExecStartPre=/bin/rm -f %t/cone-app.pid %t/cone-app.ctr-id
+ExecStart=runagent start-cone-app
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/cone-app.ctr-id -t 30
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile=%t/cone-app.ctr-id
+PIDFile=%t/cone-app.pid
+Type=forking

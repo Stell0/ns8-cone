@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import secrets
+import uuid
+from cone_state import state_lock, read_json, write_json, atomic_write, env_text
+
+with state_lock() as private:
+    identity_path = private / "identity.json"
+    identity = read_json(identity_path)
+    if identity is None:
+        stable = uuid.uuid4().hex
+        identity = {"instance_id": "cone_" + stable,
+                    "instance_iri_base": "urn:c1:instance:" + stable + ":",
+                    "issuer_alias": "sso_" + stable,
+                    "audience": "cone-" + stable,
+                    "knowledge_database": "c1_knowledge",
+                    "workflow_database": "c1_workflow"}
+        write_json(identity_path, identity)
+    secrets_path = private / "credentials.json"
+    credentials = read_json(secrets_path, {})
+    for name in ("postgres_password", "terminus_password", "fga_token", "cursor_secret"):
+        if name not in credentials:
+            credentials[name] = secrets.token_hex(32)
+    write_json(secrets_path, credentials)
+    atomic_write(private / "postgres.env", env_text({
+        "POSTGRES_USER": "openfga", "POSTGRES_DB": "openfga",
+        "POSTGRES_PASSWORD": credentials["postgres_password"],
+    }))
+    atomic_write(private / "openfga.env", env_text({
+        "OPENFGA_DATASTORE_ENGINE": "postgres",
+        "OPENFGA_DATASTORE_URI": "postgres://openfga:" + credentials["postgres_password"] + "@127.0.0.1:5432/openfga?sslmode=disable",
+        "OPENFGA_AUTHN_METHOD": "preshared", "OPENFGA_AUTHN_PRESHARED_KEYS": credentials["fga_token"],
+        "OPENFGA_PLAYGROUND_ENABLED": "false", "OPENFGA_LIST_OBJECTS_MAX_RESULTS": "1000",
+        "OPENFGA_LIST_OBJECTS_DEADLINE": "3s", "OPENFGA_REQUEST_TIMEOUT": "3s",
+    }))
+    atomic_write(private / "terminusdb.env", env_text({
+        "TERMINUSDB_ADMIN_PASS": credentials["terminus_password"],
+        "TERMINUSDB_SERVER_PORT": "6363", "TERMINUSDB_PLUGINS_PATH": "/nonexistent-c1-plugins",
+    }))
+
+    if not (private / "volumes.env").exists():
+        atomic_write(private / "volumes.env", env_text({
+            "CONE_POSTGRES_VOLUME": "cone-pgdata",
+            "CONE_TERMINUS_VOLUME": "cone-terminus-data",
+        }))

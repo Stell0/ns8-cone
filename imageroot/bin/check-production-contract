@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import sys
+from cone_runtime import image, operator
+from cone_state import private_dir
+try:
+    image()
+    if (private_dir() / 'backup-operation.json').exists():
+        raise RuntimeError('Backup is unfinished; run module-cleanup-state before starting the writer')
+    if (private_dir() / 'restoring.json').exists():
+        raise RuntimeError('Recovery is guarded; explicit verified release is required')
+    contract = operator('contract')
+    if not contract['capabilities']['gate_a_qualified'] or 'c1-v1' not in contract['qualified_token_profiles']:
+        raise RuntimeError('External OIDC is not qualified by this artifact')
+    state = operator('state')
+    if state['state'] not in ('awaiting_enrollment', 'approved', 'enrolling', 'complete'):
+        raise RuntimeError('Application initialization is incomplete')
+except Exception as error:
+    print('C1 startup refused: ' + str(error), file=sys.stderr)
+    sys.exit(4)

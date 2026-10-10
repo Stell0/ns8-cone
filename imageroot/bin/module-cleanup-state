@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+from cone_runtime import run
+from cone_state import private_dir, read_json
+private = private_dir()
+operation = read_json(private / 'backup-operation.json')
+if operation:
+    run(['systemctl', '--user', 'start', 'cone-terminusdb.service'])
+    (private / 'backup-operation.json').unlink()
+    if operation['app_was_active'] and not (private / 'restoring.json').exists():
+        run(['systemctl', '--user', 'start', 'cone-app.service'])

@@ -1,8 +1,52 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "get-configuration output",
-    "$id": "http://schema.nethserver.org/kickstart/get-configuration-output.json",
-    "description": "Get kickstart configuration",
-    "examples": [],
-    "type": "object"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "settings",
+    "configured",
+    "state",
+    "blockers",
+    "secrets_present",
+    "issuer_ca_present",
+    "administration_url"
+  ],
+  "properties": {
+    "settings": {
+      "type": "object"
+    },
+    "configured": {
+      "type": "boolean"
+    },
+    "state": {
+      "type": "string"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "string"
+    },
+    "instance_id": {
+      "type": "string"
+    },
+    "issuer_alias": {
+      "type": "string"
+    },
+    "secrets_present": {
+      "type": "boolean"
+    },
+    "issuer_ca_present": {
+      "type": "boolean"
+    },
+    "administration_url": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
 }

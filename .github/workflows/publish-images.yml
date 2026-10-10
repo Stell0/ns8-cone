@@ -1,26 +1,57 @@
-name: "Publish images"
-
+name: Publish images
 on:
   push:
+    branches: [main]
+    tags: ['[0-9]*']
   workflow_dispatch:
-
 permissions:
+  contents: read
   packages: write
-  actions: read
-  contents: write
-  security-events: write
-
 jobs:
   publish-images:
-    if: github.run_number > 1
-    uses: NethServer/ns8-github-actions/.github/workflows/publish-branch.yml@v1
-  module:
-    needs: publish-images
-    uses: NethServer/ns8-github-actions/.github/workflows/module-info.yml@v1
-  trivy:
-    needs: module
-
-    if: ${{ needs.module.outputs.release == 'stable' || needs.module.outputs.release == 'latest' || github.event_name == 'workflow_dispatch' }}
-    uses: NethServer/ns8-github-actions/.github/workflows/scan-with-trivy.yml@v1
-    with:
-      images: ${{ needs.module.outputs.images }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Buildah
+        run: sudo apt-get update && sudo apt-get install -y buildah
+      - run: corepack enable
+      - name: Log in to the registry
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$REGISTRY_TOKEN" | buildah login -u '${{ github.actor }}' --password-stdin ghcr.io
+      - name: Build pinned application and module
+        id: build
+        env:
+          REPOBASE: ghcr.io/${{ github.repository_owner }}
+          IMAGETAG: ${{ github.sha }}
+        run: bash build-images.sh
+      - name: Export reviewable module artifact
+        env:
+          MODULE_IMAGE: ${{ steps.build.outputs.module_image }}
+        run: |
+          buildah push "$MODULE_IMAGE" oci-archive:/tmp/cone-module.oci.tar
+          cd /tmp
+          sha256sum cone-module.oci.tar > cone-module.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cone-${{ github.sha }}
+          path: |
+            /tmp/cone-module.oci.tar
+            /tmp/cone-module.sha256
+          retention-days: 90
+      - name: Publish
+        env:
+          MODULE_IMAGE: ${{ steps.build.outputs.module_image }}
+          C1_IMAGE: ${{ steps.build.outputs.c1_image }}
+        run: |
+          buildah push "$C1_IMAGE" "docker://$C1_IMAGE"
+          buildah push --digestfile /tmp/module-image.digest "$MODULE_IMAGE" "docker://$MODULE_IMAGE"
+          printf 'module_digest=%s\n' "$(cat /tmp/module-image.digest)" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.ref }}" == refs/heads/main ]]; then
+            main_image="${MODULE_IMAGE%:*}:main"
+            buildah tag "$MODULE_IMAGE" "$main_image"
+            buildah push "$main_image" "docker://$main_image"
+          fi

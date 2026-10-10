@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+import sys
+import agent
+from cone_state import state_lock
+
+# Development skeleton only. Starts private storage services, never C1 or routing.
+with state_lock():
+    agent.run_helper("systemctl", "--user", "start", "cone.service", "cone-postgres.service",
+                     "cone-terminusdb.service", "cone-openfga-migrate.service", "cone-openfga.service").check_returncode()
+json.dump({"configured": False, "state": "backends-only"}, sys.stdout)

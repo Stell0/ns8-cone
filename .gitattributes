@@ -1,0 +1,2 @@
+# Historical diff artifacts retain their original upstream context whitespace.
+upstream/*.patch -whitespace

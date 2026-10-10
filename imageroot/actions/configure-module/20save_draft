@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+import sys
+import agent
+from cone_state import state_lock, write_json, read_json, atomic_write, env_text, contracts
+
+request = json.load(sys.stdin)
+providers = agent.list_service_providers(agent.redis_connect(use_replica=True), "oidc", "http",
+                                        {"module_id": request["idp_provider"]})
+agent.assert_exp(len(providers) == 1, "OIDC provider is no longer available")
+provider = providers[0]
+with state_lock() as private:
+    identity = read_json(private / "identity.json")
+    credentials = read_json(private / "credentials.json")
+    agent.assert_exp(identity is not None and credentials is not None, "Missing module state; run create-module")
+    previous = read_json(private / "deployment.json")
+    if previous and (previous["settings"]["idp_provider"] != request["idp_provider"] or
+                     previous["settings"]["user_domain"] != request["user_domain"] or
+                     previous["provider_uuid"] != provider["module_uuid"]):
+        # No migration API is available at this revision.
+        agent.assert_exp(False, "Provider/domain changes require an explicit identity migration")
+    issuer = provider["issuer_url_prefix"] + request["user_domain"]
+    if previous and previous["issuer"] != issuer:
+        agent.assert_exp(False, "Issuer namespace changed; migration is required")
+    ca = request.pop("issuer_ca_pem", None)
+    if ca is not None:
+        if ca:
+            atomic_write(private / "issuer-ca.pem", ca)
+        else:
+            (private / "issuer-ca.pem").unlink(missing_ok=True)
+    # A candidate is deliberately not a runnable C1 environment: upstream bootstrap
+    # has not supplied the OpenFGA store/model or an enrollment receipt.
+    candidate = {
+        "C1_INSTANCE_ID": identity["instance_id"], "C1_INSTANCE_IRI_BASE": identity["instance_iri_base"],
+        "C1_ISSUER_ALIAS": identity["issuer_alias"], "C1_AUDIENCE": identity["audience"],
+        "C1_ISSUER": issuer, "C1_FGA_URL": "http://127.0.0.1:8080",
+        "C1_TERMINUS_URL": "http://127.0.0.1:6363", "C1_ORGANIZATION": "admin",
+        "C1_KNOWLEDGE_DATABASE": identity["knowledge_database"],
+        "C1_WORKFLOW_DATABASE": identity["workflow_database"], "C1_LOCK_PATH": "/run/c1/writer.lock",
+        "C1_TERMINUS_PASSWORD": credentials["terminus_password"],
+        "C1_FGA_TOKEN": credentials["fga_token"], "C1_CURSOR_SECRET": credentials["cursor_secret"],
+        "C1_EXPLORER_ENABLED": str(request["explorer_enabled"]).lower(),
+        "C1_EXPLORER_ORIGIN": "https://" + request["host"],
+        "C1_EXPLORER_SESSION_IDLE_S": request["session_idle_s"],
+        "C1_EXPLORER_SESSION_MAX_S": request["session_max_s"],
+        "C1_INDEPENDENT_REVIEW": str(request["independent_review"]).lower(),
+        "C1_QUERY_CANDIDATE_LIMIT": request["query_candidate_limit"],
+        "C1_MAX_READABLE_SCOPES": request["max_readable_scopes"],
+        "C1_QUERY_TIME_BUDGET_MS": request["query_time_budget_ms"],
+        "C1_BACKEND_TIMEOUT_S": request["backend_timeout_s"],
+        "C1_ENABLE_PROBE_ROUTES": "false",
+    }
+    if (private / "issuer-ca.pem").exists():
+        candidate["C1_ISSUER_CA_FILE"] = "/etc/c1-certs/issuer-ca.pem"
+    atomic_write(private / "c1.env.pending", env_text(candidate))
+    write_json(private / "deployment.json", {"settings": request, "issuer": issuer,
+               "provider_uuid": provider["module_uuid"], "state": "blocked"})
+json.dump({"configured": False, "state": "blocked", "draft_saved": True,
+           "blockers": contracts()["blockers"]}, sys.stdout)

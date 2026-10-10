@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-10",
+  "platform": "linux/amd64",
+  "repositories": {
+    "kickstart": {
+      "url": "https://github.com/NethServer/ns8-kickstart",
+      "revision": "9e8ab447d51beef5858eb07e4e8a0b9fe691cce3",
+      "module_initial_revision": "11cdbcc91fb0d9668ad84eed662bb8cad7df94a9"
+    },
+    "core": {
+      "url": "https://github.com/NethServer/ns8-core",
+      "revision": "f1df1692ddfb8dc064dfa3e02427522cdbdd6a7a",
+      "tested_version": "3.21.0"
+    },
+    "idp": {
+      "url": "https://github.com/NethServer/ns8-idp",
+      "revision": "81454e350d600ecbe0b6d0163090ef51bb34acb3",
+      "required_release": null
+    },
+    "c1": {
+      "url": "https://github.com/Stell0/c1",
+      "revision": "d6d9f8614c8dfd52591ec1d2402438f7b6a626f7",
+      "version": "0.1.0rc2",
+      "release_url": "https://github.com/Stell0/c1/releases/tag/v0.1.0rc2"
+    }
+  },
+  "images": {
+    "terminusdb": {
+      "image": "docker.io/terminusdb/terminusdb-server",
+      "tag": "v12.0.7",
+      "digest": "sha256:385faf298ad77aaf2d4d6df5e84a4cbe3596d01dab2e3b991af905639ae56388",
+      "platform": "linux/amd64",
+      "license": "Apache-2.0",
+      "reference": "docker.io/terminusdb/terminusdb-server@sha256:385faf298ad77aaf2d4d6df5e84a4cbe3596d01dab2e3b991af905639ae56388"
+    },
+    "openfga": {
+      "image": "docker.io/openfga/openfga",
+      "tag": "v1.21.0",
+      "digest": "sha256:2113c664a486b5da8d7a2cdab479e0d4e30639c80fd2c000540f645c1dbc1e55",
+      "platform": "linux/amd64",
+      "license": "Apache-2.0",
+      "reference": "docker.io/openfga/openfga@sha256:2113c664a486b5da8d7a2cdab479e0d4e30639c80fd2c000540f645c1dbc1e55"
+    },
+    "postgres": {
+      "image": "docker.io/library/postgres",
+      "tag": "17-alpine",
+      "digest": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "platform": "linux/amd64",
+      "license": "PostgreSQL",
+      "reference": "docker.io/library/postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+    },
+    "c1": {
+      "image": "ghcr.io/stell0/cone-c1",
+      "tag": "0.1.0rc2-d6d9f8614c8d",
+      "source_revision": "d6d9f8614c8dfd52591ec1d2402438f7b6a626f7",
+      "recipe": "deployment/reference/Containerfile",
+      "published_digest": null,
+      "archive_sha256": "5ebc8262e21a6d9d62042ce6181a2c165147c0cf1c7d7c6d893b8b261146ecb9",
+      "upstream_image_id": "sha256:b1546cbbf032eedf7c3c58cb1b4e371d9aab62aa054a1515aa092ef7a3b0b653",
+      "config_digest": "sha256:d3d2f8c47461865dfecda5f4b9c27eb5d07c1de0d6c7f52b135a2fb750738127"
+    }
+  },
+  "production_ready": false,
+  "blockers": [
+    "NS8-VERIFY: site enrollment, browser/workflow and recovery qualification are installation-specific"
+  ],
+  "minimum_core_version": "3.21.0",
+  "upstream_capabilities": {
+    "configuration_version": 1,
+    "backup_manifest_version": 2,
+    "gate_a_qualified": true,
+    "gate_b_qualified": true,
+    "qualified_token_profiles": [
+      "c1-v1",
+      "hydra-jwt-v1"
+    ]
+  }
+}

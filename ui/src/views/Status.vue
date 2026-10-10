@@ -9,6 +9,56 @@
         <h2>{{ $t("status.title") }}</h2>
       </cv-column>
     </cv-row>
+    <cv-row
+      ><cv-column>
+        <NsInlineNotification
+          v-if="integration"
+          :kind="integration.configured ? 'success' : 'warning'"
+          :title="
+            integration.configured
+              ? 'C1 is ready'
+              : 'C1 setup or recovery is pending'
+          "
+          :description="
+            integration.configured
+              ? 'Authentication and application consistency checks passed.'
+              : 'Open C1 to complete the approved administrator enrollment.'
+          "
+          :showCloseButton="false"
+        />
+        <NsInlineNotification
+          v-if="integrationError"
+          kind="error"
+          :title="$t('integration.status_error')"
+          :description="integrationError"
+          :showCloseButton="false"
+        />
+        <NsTile v-if="integration" light>
+          <p>C1 {{ integration.versions.c1 }}</p>
+          <p v-if="integration.administration_url">
+            <a
+              :href="integration.administration_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Open C1 Explorer</a
+            >
+          </p>
+          <p>
+            {{ $t("settings.idp_provider") }}:
+            {{ integration.idp_provider || "—" }}
+          </p>
+          <p>
+            {{ $t("settings.user_domain") }}:
+            {{ integration.user_domain || "—" }}
+          </p>
+          <ul>
+            <li v-for="blocker in integration.blockers" :key="blocker">
+              {{ blocker }}
+            </li>
+          </ul>
+        </NsTile>
+      </cv-column></cv-row
+    >
     <cv-row v-if="error.getStatus">
       <cv-column>
         <NsInlineNotification
@@ -256,6 +306,7 @@
 
 <script>
 import to from "await-to-js";
+import moduleTasks from "../mixins/moduleTasks";
 import { mapState } from "vuex";
 import {
   QueryParamService,
@@ -268,6 +319,7 @@ import {
 export default {
   name: "Status",
   mixins: [
+    moduleTasks,
     TaskService,
     QueryParamService,
     IconService,
@@ -283,6 +335,8 @@ export default {
         page: "status",
       },
       urlCheckInterval: null,
+      integration: null,
+      integrationError: "",
       isRedirectChecked: false,
       redirectTimeout: 0,
       status: {
@@ -347,6 +401,13 @@ export default {
   },
   created() {
     this.getStatus();
+    this.runModuleTask("get-integration-status")
+      .then((result) => {
+        this.integration = result;
+      })
+      .catch((error) => {
+        this.integrationError = this.getErrorMessage(error);
+      });
     this.listBackupRepositories();
   },
   methods: {

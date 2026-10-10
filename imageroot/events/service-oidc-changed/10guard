@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+import sys
+from cone_state import state_lock, read_json, write_json
+
+event = json.load(sys.stdin)
+with state_lock() as private:
+    deployment = read_json(private / "deployment.json")
+    if not deployment or event.get("module_uuid") != deployment["provider_uuid"]:
+        sys.exit(0)
+    # Record only the relevant provider event. No silent namespace switch,
+    # re-registration, or secret rotation while contracts are pending.
+    write_json(private / "reconciliation.json", {"state": "blocked", "reason": "provider_changed"})

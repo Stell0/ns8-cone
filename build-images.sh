@@ -1,71 +1,60 @@
 #!/bin/bash
-
-#
-# Copyright (C) 2023 Nethesis S.r.l.
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-
-# Terminate on error
-set -e
-
-# Prepare variables for later use
-images=()
-# The image will be pushed to GitHub container registry
-repobase="${REPOBASE:-ghcr.io/nethserver}"
-# Configure the image name
-reponame="kickstart"
-
-# Create a new empty container image
-container=$(buildah from scratch)
-
-# Reuse existing nodebuilder-kickstart container, to speed up builds
-if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-kickstart; then
-    echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-kickstart -v "${PWD}:/usr/src:Z" docker.io/library/node:24.21.0-slim
+set -euo pipefail
+repobase="${REPOBASE:-ghcr.io/stell0}"
+repobase="${repobase,,}"
+module_tag="${IMAGETAG:-dev}"
+c1_tag=$(python3 -c 'import json; print(json.load(open("integration-lock.json"))["images"]["c1"]["tag"])')
+c1_revision=$(python3 -c 'import json; print(json.load(open("integration-lock.json"))["repositories"]["c1"]["revision"])')
+c1_artifacts=$(mktemp -d)
+container=""
+cleanup() {
+    rm -rf "$c1_artifacts"
+    if [[ -n "$container" ]]; then buildah rm "$container" >/dev/null; fi
+}
+trap cleanup EXIT
+# Consume the qualified upstream release bytes; rebuilding changes the config digest.
+c1_archive="$c1_artifacts/c1.docker.tar.gz"
+c1_release=$(python3 -c 'import json; print(json.load(open("integration-lock.json"))["repositories"]["c1"]["version"])')
+c1_checksum=$(python3 -c 'import json; print(json.load(open("integration-lock.json"))["images"]["c1"]["archive_sha256"])')
+curl --fail --location --retry 3 --max-time 300 \
+    "https://github.com/Stell0/c1/releases/download/v${c1_release}/c1-${c1_release}-linux-amd64.docker.tar.gz" \
+    --output "$c1_archive"
+printf '%s  %s\n' "$c1_checksum" "$c1_archive" | sha256sum --check --status
+gzip -dc "$c1_archive" > "$c1_artifacts/c1.docker.tar"
+buildah pull "docker-archive:$c1_artifacts/c1.docker.tar"
+buildah tag "localhost/c1:${c1_release}" "${repobase}/cone-c1:${c1_tag}"
+buildah inspect --type image "${repobase}/cone-c1:${c1_tag}" | python3 -c '
+import json, sys
+lock = json.load(open("integration-lock.json"))
+image = json.load(sys.stdin)
+assert image["FromImageID"].removeprefix("sha256:") == lock["images"]["c1"]["config_digest"].removeprefix("sha256:"), "Runtime configuration digest changed"
+assert image["OCIv1"]["config"]["Labels"]["org.opencontainers.image.revision"] == lock["repositories"]["c1"]["revision"], "Runtime revision changed"
+'
+# A prepared dist directory supports the remote test build; CI always rebuilds.
+if [[ "${SKIP_UI_BUILD:-0}" != 1 ]]; then
+    (
+        cd ui
+        corepack yarn install --immutable
+        NODE_OPTIONS=--openssl-legacy-provider corepack yarn build
+    )
 fi
-
-echo "Build static UI files with node..."
-buildah run \
-    --workingdir=/usr/src/ui \
-    --env="NODE_OPTIONS=--openssl-legacy-provider" \
-    nodebuilder-kickstart \
-    sh -c "corepack enable && yarn install && yarn build"
-
-# Add imageroot directory to the container image
-buildah add "${container}" imageroot /imageroot
-buildah add "${container}" ui/dist /ui
-# Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
+test -f ui/dist/index.html
+container=$(buildah from scratch)
+buildah add "$container" imageroot /imageroot
+buildah add "$container" ui/dist /ui
+images=$(python3 -c 'import json; d=json.load(open("integration-lock.json")); print(" ".join(d["images"][k]["reference"] for k in ("terminusdb","openfga","postgres")))')
 buildah config --entrypoint=/ \
-    --label="org.nethserver.authorizations=traefik@node:routeadm" \
+    --label="org.opencontainers.image.source=https://github.com/Stell0/ns8-cone" \
+    --label="org.nethserver.authorizations=traefik@node:routeadm idp@any:clientadm cluster:accountconsumer" \
+    --label="org.nethserver.min-core=3.21.0" \
     --label="org.nethserver.tcp-ports-demand=1" \
     --label="org.nethserver.rootfull=0" \
-    --label="org.nethserver.images=docker.io/jmalloc/echo-server:latest" \
-    "${container}"
-# Commit the image
-buildah commit "${container}" "${repobase}/${reponame}"
-
-# Append the image URL to the images array
-images+=("${repobase}/${reponame}")
-
-#
-# NOTICE:
-#
-# It is possible to build and publish multiple images.
-#
-# 1. create another buildah container
-# 2. add things to it and commit it
-# 3. append the image url to the images array
-#
-
-#
-# Setup CI when pushing to Github. 
-# Warning! docker::// protocol expects lowercase letters (,,)
-if [[ -n "${CI}" ]]; then
-    # Set output value for Github Actions
-    printf "images=%s\n" "${images[*],,}" >> "${GITHUB_OUTPUT}"
-else
-    # Just print info for manual push
-    printf "Publish the images with:\n\n"
-    for image in "${images[@],,}"; do printf "  buildah push %s docker://%s:%s\n" "${image}" "${image}" "${IMAGETAG:-latest}" ; done
-    printf "\n"
+    --label="org.nethserver.volumes=cone-pgdata cone-terminus-data" \
+    --label="org.nethserver.images=${images} ${repobase}/cone-c1:${c1_tag}" \
+    "$container"
+buildah commit "$container" "${repobase}/cone:${module_tag}"
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    printf 'module_image=%s\nc1_image=%s\n' "${repobase}/cone:${module_tag}" "${repobase}/cone-c1:${c1_tag}" >> "$GITHUB_OUTPUT"
 fi
+printf 'Built %s and %s\n' "${repobase}/cone:${module_tag}" "${repobase}/cone-c1:${c1_tag}"
