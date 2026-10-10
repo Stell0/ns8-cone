@@ -118,9 +118,9 @@ def restore(directory, operator_name):
         # Repeating a tar import in this owned, unpublished generation is safe.
         with (directory / 'terminusdb-storage.tar').open('rb') as data:
             result = subprocess.run(['podman','run','--rm','-i','--network=none',
-                # Match the backend namespace so restored root-owned files
-                # retain the same host ownership as the TerminusDB service.
-                '--user=0',
+                # The cone pod shares this mapping across every backend.
+                # Match it even though this import runs outside the pod.
+                '--userns=keep-id:uid=10001,gid=10001','--user=0',
                 '--volume='+term+':/target:z','--entrypoint=/bin/tar',image(),
                 '-xf','-','-C','/target'],stdin=data,capture_output=True,timeout=180)
         if result.returncode:
