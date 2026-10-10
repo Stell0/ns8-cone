@@ -20,7 +20,7 @@ Run action
 
 *** Test Cases ***
 Install a guarded C1 skeleton
-    ${output}    ${rc} =    Execute Command    add-module ${IMAGE_URL} 1    return_rc=True
+    ${output}    ${rc} =    Execute Command    api-cli run add-module --data '{"image":"${IMAGE_URL}","node":1}'    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     ${result} =    Evaluate    json.loads($output)    modules=json
     Set Global Variable    ${module_id}    ${result['module_id']}
