@@ -7,39 +7,45 @@ import subprocess
 import sys
 import uuid
 from cone_runtime import image, operator, run
-from cone_state import private_dir, read_json, write_json
+from cone_state import private_dir, read_json, write_json, state_lock
 from cone_recovery import volumes
 
-private = private_dir()
-state = read_json(private / 'application/initialization.json', {})
-if state.get('state') != 'complete' or (private / 'restoring.json').exists():
-    print('Backup requires completed enrollment and an unguarded installation', file=sys.stderr)
-    sys.exit(4)
-if (private / 'backup-operation.json').exists():
-    print('Previous backup requires cleanup before another snapshot', file=sys.stderr)
-    sys.exit(4)
-was_active = subprocess.run(['systemctl', '--user', 'is-active', '--quiet', 'cone-app.service']).returncode == 0
-snapshot = private / 'application/snapshots' / uuid.uuid4().hex
-snapshot.mkdir(mode=0o700, parents=True)
-snapshot.chmod(0o700)
-write_json(private / 'backup-operation.json', {'snapshot': str(snapshot), 'app_was_active': was_active})
-run(['systemctl', '--user', 'stop', 'cone-app.service'])
-operator('consistency')
-try:
-    with (snapshot / 'openfga.pgdump').open('wb') as output:
-        os.chmod(output.name, 0o600)
-        subprocess.run(['podman', 'exec', '--user=postgres', 'cone-postgres',
-                        'pg_dump', '-U', 'openfga', '--format=c', 'openfga'],
-                       stdout=output, stderr=subprocess.PIPE, timeout=180, check=True)
-    run(['systemctl', '--user', 'stop', 'cone-terminusdb.service'])
-    with (snapshot / 'terminusdb-storage.tar').open('wb') as output:
-        os.chmod(output.name, 0o600)
-        subprocess.run(['podman', 'run', '--rm', '--pod=cone', '--user=0', '--read-only',
-                        '--volume='+volumes()['CONE_TERMINUS_VOLUME']+':/source:ro,z', '--entrypoint=/bin/tar',
-                        image(), '--hard-dereference', '-cf', '-', '-C', '/source', '.'],
-                       stdout=output, stderr=subprocess.PIPE, timeout=180, check=True)
-finally:
-    run(['systemctl', '--user', 'start', 'cone-terminusdb.service'])
-operator('backup-manifest', '--directory', '/var/lib/c1/private/snapshots/' + snapshot.name,
-         '--operator', 'NS8-backup-supervisor')
-write_json(private / 'backup-snapshot.json', {'snapshot': snapshot.name, 'manifest_version': 2})
+
+
+def main(private):
+    state = read_json(private / 'application/initialization.json', {})
+    if state.get('state') != 'complete' or (private / 'restoring.json').exists():
+        print('Backup requires completed enrollment and an unguarded installation', file=sys.stderr)
+        sys.exit(4)
+    if (private / 'backup-operation.json').exists():
+        print('Previous backup requires cleanup before another snapshot', file=sys.stderr)
+        sys.exit(4)
+    was_active = subprocess.run(['systemctl', '--user', 'is-active', '--quiet', 'cone-app.service']).returncode == 0
+    snapshot = private / 'application/snapshots' / uuid.uuid4().hex
+    snapshot.mkdir(mode=0o700, parents=True)
+    snapshot.chmod(0o700)
+    write_json(private / 'backup-operation.json', {'snapshot': str(snapshot), 'app_was_active': was_active})
+    run(['systemctl', '--user', 'stop', 'cone-app.service'])
+    operator('consistency')
+    try:
+        with (snapshot / 'openfga.pgdump').open('wb') as output:
+            os.chmod(output.name, 0o600)
+            subprocess.run(['podman', 'exec', '--user=postgres', 'cone-postgres',
+                            'pg_dump', '-U', 'openfga', '--format=c', 'openfga'],
+                           stdout=output, stderr=subprocess.PIPE, timeout=180, check=True)
+        run(['systemctl', '--user', 'stop', 'cone-terminusdb.service'])
+        with (snapshot / 'terminusdb-storage.tar').open('wb') as output:
+            os.chmod(output.name, 0o600)
+            subprocess.run(['podman', 'run', '--rm', '--pod=cone', '--user=0', '--read-only',
+                            '--volume='+volumes()['CONE_TERMINUS_VOLUME']+':/source:ro,z', '--entrypoint=/bin/tar',
+                            image(), '--hard-dereference', '-cf', '-', '-C', '/source', '.'],
+                           stdout=output, stderr=subprocess.PIPE, timeout=180, check=True)
+    finally:
+        run(['systemctl', '--user', 'start', 'cone-terminusdb.service'])
+    operator('backup-manifest', '--directory', '/var/lib/c1/private/snapshots/' + snapshot.name,
+             '--operator', 'NS8-backup-supervisor')
+    write_json(private / 'backup-snapshot.json', {'snapshot': snapshot.name, 'manifest_version': 2})
+
+
+with state_lock() as private:
+    main(private)

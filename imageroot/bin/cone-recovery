@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sys
 from cone_recovery import restore, verify, release
+from cone_state import state_lock
 p=argparse.ArgumentParser()
 commands=p.add_subparsers(dest='command',required=True)
 r=commands.add_parser('restore');r.add_argument('--directory',type=Path,required=True);r.add_argument('--operator',required=True)
@@ -15,9 +16,10 @@ for name in ['verify','release']:
   r.add_argument('--accept-security-as-of',required=True);r.add_argument('--reason',required=True);r.add_argument('--operator',required=True)
 a=p.parse_args()
 try:
- if a.command=='restore': result=restore(a.directory,a.operator)
- elif a.command=='verify': result=verify(a.namespace_evidence,a.token_file)
- else: result=release(a.namespace_evidence,a.token_file,a.accept_security_as_of,a.reason,a.operator)
+ with state_lock():
+  if a.command=='restore': result=restore(a.directory,a.operator)
+  elif a.command=='verify': result=verify(a.namespace_evidence,a.token_file)
+  else: result=release(a.namespace_evidence,a.token_file,a.accept_security_as_of,a.reason,a.operator)
  print(json.dumps(result,sort_keys=True))
 except ValueError as error:
  print(json.dumps({'contract_version':1,'error':str(error)}));sys.exit(2)

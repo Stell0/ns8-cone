@@ -70,8 +70,24 @@ def manifest(directory):
     return value
 
 
+def ensure_owned_volumes(guard, digest):
+    for role, reference in guard['new_volumes'].items():
+        step = {'CONE_POSTGRES_VOLUME':'postgres', 'CONE_TERMINUS_VOLUME':'terminus'}[role]
+        info = subprocess.run(['podman','volume','inspect',reference],capture_output=True,timeout=30)
+        if info.returncode:
+            if step in guard['steps']:
+                raise ValueError('owned_recovery_volume_missing')
+            run(['podman','volume','create','--label=c1.recovery='+digest,reference])
+        else:
+            metadata = json.loads(info.stdout)[0]
+            if metadata.get('Labels', {}).get('c1.recovery') != digest:
+                raise ValueError('ambiguous_recovery_volume')
+
+
 def restore(directory, operator_name):
     private = private_dir()
+    if (private / 'backup-operation.json').exists():
+        raise ValueError('backup_cleanup_required')
     value = manifest(directory)
     existing = read_json(private / 'application/initialization.json', {})
     candidate = read_json(directory / 'initialization.json')
@@ -103,16 +119,7 @@ def restore(directory, operator_name):
                  'steps':[]}
         write_json(private / 'restoring.json', guard)  # Intent before durable resource mutation.
     run(['systemctl','--user','stop','cone-app.service', *reversed(UNITS)])
-    for role, reference in guard['new_volumes'].items():
-        info = subprocess.run(['podman','volume','inspect',reference],capture_output=True,timeout=30)
-        if info.returncode:
-            if role in guard['steps']:
-                raise ValueError('owned_recovery_volume_missing')
-            run(['podman','volume','create','--label=c1.recovery='+digest,reference])
-        else:
-            metadata = json.loads(info.stdout)[0]
-            if metadata.get('Labels', {}).get('c1.recovery') != digest:
-                raise ValueError('ambiguous_recovery_volume')
+    ensure_owned_volumes(guard, digest)
     term = guard['new_volumes']['CONE_TERMINUS_VOLUME']
     if 'terminus' not in guard['steps']:
         # Repeating a tar import in this owned, unpublished generation is safe.
