@@ -4,6 +4,7 @@
 import json
 import os
 import subprocess
+import sys
 import uuid
 from cone_runtime import image, operator, run
 from cone_state import private_dir, read_json, write_json
@@ -12,9 +13,11 @@ from cone_recovery import volumes
 private = private_dir()
 state = read_json(private / 'application/initialization.json', {})
 if state.get('state') != 'complete' or (private / 'restoring.json').exists():
-    raise RuntimeError('Backup requires completed enrollment and an unguarded installation')
+    print('Backup requires completed enrollment and an unguarded installation', file=sys.stderr)
+    sys.exit(4)
 if (private / 'backup-operation.json').exists():
-    raise RuntimeError('Previous backup requires cleanup before another snapshot')
+    print('Previous backup requires cleanup before another snapshot', file=sys.stderr)
+    sys.exit(4)
 was_active = subprocess.run(['systemctl', '--user', 'is-active', '--quiet', 'cone-app.service']).returncode == 0
 snapshot = private / 'application/snapshots' / uuid.uuid4().hex
 snapshot.mkdir(mode=0o700, parents=True)

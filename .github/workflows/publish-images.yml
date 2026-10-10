@@ -51,7 +51,11 @@ jobs:
           buildah push --digestfile /tmp/module-image.digest "$MODULE_IMAGE" "docker://$MODULE_IMAGE"
           printf 'module_digest=%s\n' "$(cat /tmp/module-image.digest)" >> "$GITHUB_OUTPUT"
           if [[ "${{ github.ref }}" == refs/heads/main ]]; then
-            main_image="${MODULE_IMAGE%:*}:main"
-            buildah tag "$MODULE_IMAGE" "$main_image"
-            buildah push "$main_image" "docker://$main_image"
+            # NS8's shared test runner resolves the main branch as latest.
+            # Deployment and recovery still use the immutable SHA tag.
+            for alias in main latest; do
+              branch_image="${MODULE_IMAGE%:*}:$alias"
+              buildah tag "$MODULE_IMAGE" "$branch_image"
+              buildah push "$branch_image" "docker://$branch_image"
+            done
           fi
