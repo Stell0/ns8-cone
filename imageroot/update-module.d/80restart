@@ -6,5 +6,6 @@ if test -s "$AGENT_STATE_DIR/private/c1.env"; then
   systemctl --user daemon-reload
   systemctl --user start cone.service cone-postgres.service cone-terminusdb.service cone-openfga-migrate.service cone-openfga.service
   runagent check-production-contract
+  systemctl --user enable cone.service cone-app.service
   systemctl --user start cone-app.service
 fi

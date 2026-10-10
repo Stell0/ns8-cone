@@ -21,3 +21,6 @@ ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/cone-app.ctr-id -t 30
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile=%t/cone-app.ctr-id
 PIDFile=%t/cone-app.pid
 Type=forking
+
+[Install]
+WantedBy=default.target
