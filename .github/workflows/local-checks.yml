@@ -12,6 +12,9 @@ jobs:
           python-version: '3.11'
       - run: pip install jsonschema==4.23.0
       - run: python3 -m unittest discover -s tests/unit -v
+      - run: pip install robotframework==7.5 robotframework-sshlibrary==3.8.0
+      - name: Validate lifecycle suite keywords
+        run: robot --dryrun --outputdir /tmp/robot-dryrun --variable NODE_ADDR:localhost --variable IMAGE_URL:ghcr.io/stell0/cone:test tests
       - run: bash -n build-images.sh
   settings-ui:
     runs-on: ubuntu-latest

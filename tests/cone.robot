@@ -1,6 +1,7 @@
 *** Settings ***
 Library    SSHLibrary
 Library    Collections
+Resource    ssh.resource
 Suite Setup    Connect to the node
 
 *** Variables ***
@@ -10,7 +11,9 @@ ${module_id}    ${EMPTY}
 Run action
     [Arguments]    ${action}    ${data}=${EMPTY}    ${expected}=0
     ${command} =    Set Variable    api-cli run module/${module_id}/${action}
-    IF    $data != ''    ${command} =    Set Variable    ${command} --data '${data}'
+    IF    $data != ''
+        ${command} =    Set Variable    ${command} --data '${data}'
+    END
     ${output}    ${rc} =    Execute Command    ${command}    return_rc=True
     Should Be Equal As Integers    ${rc}    ${expected}
     RETURN    ${output}
