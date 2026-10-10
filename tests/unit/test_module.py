@@ -118,8 +118,7 @@ class ModuleTests(unittest.TestCase):
             first = (private / "c1.env.pending").read_bytes()
             self.run_step("configure-module", "20save_draft", settings)
             self.assertEqual(first, (private / "c1.env.pending").read_bytes())
-            self.assertFalse(result["configured"])
-            self.assertTrue(result["draft_saved"])
+            self.assertIsNone(result)
             with self.assertRaisesRegex(RuntimeError, "migration"):
                 self.run_step("configure-module", "20save_draft", {**settings, "user_domain": "other.example.org"})
             self.assertEqual(first, (private / "c1.env.pending").read_bytes())
@@ -127,6 +126,33 @@ class ModuleTests(unittest.TestCase):
         self.assertFalse((private / "c1.env").exists())
         self.assertNotIn("C1_FGA_STORE=", first.decode())
         self.assertNotIn("C1_EXPLORER_CLIENT_SECRET=", first.decode())
+
+    def test_configuration_pipeline_emits_one_valid_json_result(self):
+        self.initialize()
+        settings = {**cone_state.DEFAULTS, "host": "app.example.org", "idp_provider": "idp1", "user_domain": "users.example.org"}
+        sdk = types.ModuleType("agent")
+        sdk.redis_connect = lambda **kw: object()
+        sdk.list_service_providers = lambda *args: [{"module_uuid": "provider-1", "issuer_url_prefix": "https://sso.example.org/realms/"}]
+        def assert_exp(condition, message):
+            if not condition: raise RuntimeError(message)
+        sdk.assert_exp = assert_exp
+        output = io.StringIO()
+        with patch.dict(sys.modules, {"agent": sdk}), patch("sys.stdin", io.StringIO(json.dumps(settings))), contextlib.redirect_stdout(output), patch("cone_runtime.reconcile", return_value={"configured": True, "state": "ready", "blockers": []}):
+            for step in ["20save_draft", "80reconcile"]:
+                runpy.run_path(str(ROOT / "imageroot/actions/configure-module" / step), run_name="__main__")
+        value = json.loads(output.getvalue())
+        schema = json.loads((ROOT / "imageroot/actions/configure-module/validate-output.json").read_text())
+        jsonschema.validate(value, schema)
+        self.assertTrue(value["configured"])
+        before = (self.state / "private/deployment.json").read_bytes()
+        for marker in ["restoring.json", "backup-operation.json"]:
+            path = self.state / "private" / marker
+            path.write_text("{}")
+            with patch.dict(sys.modules, {"agent": sdk}):
+                with self.assertRaisesRegex(RuntimeError, "maintenance"):
+                    self.run_step("configure-module", "20save_draft", settings)
+            self.assertEqual(before, (self.state / "private/deployment.json").read_bytes())
+            path.unlink()
 
     def test_provider_event_only_records_the_selected_provider(self):
         self.initialize()

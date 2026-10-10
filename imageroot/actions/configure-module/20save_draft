@@ -3,7 +3,7 @@
 import json
 import sys
 import agent
-from cone_state import state_lock, write_json, read_json, atomic_write, env_text, contracts
+from cone_state import state_lock, write_json, read_json, atomic_write, env_text
 
 request = json.load(sys.stdin)
 providers = agent.list_service_providers(agent.redis_connect(use_replica=True), "oidc", "http",
@@ -11,6 +11,9 @@ providers = agent.list_service_providers(agent.redis_connect(use_replica=True), 
 agent.assert_exp(len(providers) == 1, "OIDC provider is no longer available")
 provider = providers[0]
 with state_lock() as private:
+    agent.assert_exp(not (private / 'restoring.json').exists() and
+                     not (private / 'backup-operation.json').exists(),
+                     'Complete protected maintenance before changing configuration')
     identity = read_json(private / "identity.json")
     credentials = read_json(private / "credentials.json")
     agent.assert_exp(identity is not None and credentials is not None, "Missing module state; run create-module")
@@ -29,8 +32,8 @@ with state_lock() as private:
             atomic_write(private / "issuer-ca.pem", ca)
         else:
             (private / "issuer-ca.pem").unlink(missing_ok=True)
-    # A candidate is deliberately not a runnable C1 environment: upstream bootstrap
-    # has not supplied the OpenFGA store/model or an enrollment receipt.
+    # Reconciliation must qualify configuration and initialize application state
+    # before this candidate can become a runnable C1 environment.
     candidate = {
         "C1_INSTANCE_ID": identity["instance_id"], "C1_INSTANCE_IRI_BASE": identity["instance_iri_base"],
         "C1_ISSUER_ALIAS": identity["issuer_alias"], "C1_AUDIENCE": identity["audience"],
@@ -56,5 +59,4 @@ with state_lock() as private:
     atomic_write(private / "c1.env.pending", env_text(candidate))
     write_json(private / "deployment.json", {"settings": request, "issuer": issuer,
                "provider_uuid": provider["module_uuid"], "state": "blocked"})
-json.dump({"configured": False, "state": "blocked", "draft_saved": True,
-           "blockers": contracts()["blockers"]}, sys.stdout)
+# Only the final reconciliation step emits the action's JSON result.
