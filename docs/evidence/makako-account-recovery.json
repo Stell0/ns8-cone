@@ -1,0 +1,101 @@
+{
+  "accounts": {
+    "foo1": {
+      "instance_roles": [
+        "access_admin",
+        "schema_admin"
+      ]
+    },
+    "foo2": {
+      "instance_roles": [],
+      "permissions": "explicit synthetic scope grants"
+    }
+  },
+  "additional_checks": {
+    "browser_engine_automation": "NOT_RUN",
+    "corrupt_snapshot_rejected_before_mutation": "PASS",
+    "crash_after_storage_import": "PASS",
+    "cross_module_client_migration": "NOT_QUALIFIED",
+    "encrypted_backup_and_full_data_check": "PASS",
+    "encrypted_transport_restore": "PASS",
+    "exact_initial_enrollment": "PASS",
+    "identity_models_internal_credentials_preserved": "PASS",
+    "off_node_disaster_recovery": "NOT_QUALIFIED",
+    "retry_same_owned_generation": "PASS",
+    "shared_node_reboot": "NOT_RUN",
+    "whole_pod_restart_and_enabled_application": "PASS",
+    "wrong_first_login_refused": "PASS"
+  },
+  "backup": {
+    "job_id": 8,
+    "manifest_created_at": "2026-10-10T12:57:33.498591+00:00",
+    "restic_snapshot": "77c47d042a92765ff4bc42bd22c2f76f1daa11d5bb886efd753e8778e9acf062",
+    "retained_original_volumes": true
+  },
+  "c1_config_digest": "d3d2f8c47461865dfecda5f4b9c27eb5d07c1de0d6c7f52b135a2fb750738127",
+  "c1_revision": "d6d9f8614c8dfd52591ec1d2402438f7b6a626f7",
+  "c1_version": "0.1.0rc2",
+  "date": "2026-10-10",
+  "module": "cone8",
+  "module_archive_sha256": "91dafa6edd8ef6d6da9a2c715636695613dc402b356263ce9822e088caf54b42",
+  "module_revision": "dbbca92f856793fbbeff430b7c4c7ef29599c006",
+  "no_secrets_in_evidence": true,
+  "protocol_and_workflow": {
+    "fixture": {
+      "changeset_label": "NS8 reviewed synthetic entity",
+      "entity": "urn:c1:instance:b41981ca02fb45dcaa638e208be11673:entity/c54e0ba5-faa3-44c2-ad02-00540a35f570",
+      "scope": "191b03d1-0da8-4529-ab11-f0b842c26506"
+    },
+    "principals": {
+      "foo1": {
+        "issuer_alias": "sso_b41981ca02fb45dcaa638e208be11673",
+        "kind": "human",
+        "principal": "user:sso_b41981ca02fb45dcaa638e208be11673.4f11d353-daff-4961-a858-4af54bacf22a",
+        "subject": "4f11d353-daff-4961-a858-4af54bacf22a"
+      },
+      "foo2": {
+        "issuer_alias": "sso_b41981ca02fb45dcaa638e208be11673",
+        "kind": "human",
+        "principal": "user:sso_b41981ca02fb45dcaa638e208be11673.0c0eb623-36c8-4c76-ad5c-e0e5ab465374",
+        "subject": "0c0eb623-36c8-4c76-ad5c-e0e5ab465374"
+      }
+    },
+    "results": {
+      "administrator_scope_and_least_privilege_grants": "PASS",
+      "exact_issuer_tls_discovery": "PASS",
+      "foo1_explorer_pages_security_csrf": "PASS",
+      "foo1_local_logout": "PASS",
+      "foo2_explorer_pages_security_csrf": "PASS",
+      "foo2_local_logout": "PASS",
+      "id_tokens_rejected_by_api": "PASS",
+      "independent_review_self_approval_denied": "PASS",
+      "invalid_pkce_rejected": "PASS",
+      "missing_invalid_forwarded_identity_rejected": "PASS",
+      "normal_user_denied_administration": "PASS",
+      "normal_user_reviewed_modify_attribution_idempotent_apply": "PASS",
+      "normal_user_stays_non_administrator": "PASS",
+      "provider_refresh": "PASS",
+      "read_only_user_denied_creation": "PASS",
+      "reviewed_changeset_create_read_context": "PASS",
+      "revocation_next_request_and_context_no_leak": "PASS",
+      "two_real_user_code_pkce_logins": "PASS",
+      "unsupported_grants_rejected": "PASS"
+    }
+  },
+  "recovery": {
+    "results": {
+      "changed_proof_invalidates_verification": "PASS",
+      "exact_snapshot_acceptance_required": "PASS",
+      "guarded_writer_startup_refused": "PASS",
+      "restored_live_consistent_readiness": "PASS",
+      "stale_continuity_refused": "PASS",
+      "valid_namespace_verification": "PASS",
+      "verified_explicit_release": "PASS",
+      "wrong_identity_refused": "PASS",
+      "wrong_namespace_refused": "PASS"
+    },
+    "retained_original_volumes": true,
+    "snapshot_created_at": "2026-10-10T12:57:33.498591+00:00"
+  },
+  "site": "cone.makako.sf.nethserver.net"
+}

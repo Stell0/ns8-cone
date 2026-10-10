@@ -16,13 +16,14 @@ evidence, CI and commit messages.
 | Check | Result | Evidence / limitation |
 | --- | --- | --- |
 | C1 local `make check` | PASS | 1,081 tests passed, 168 service-dependent checks skipped; Ruff, strict mypy, secret, baseline, profiles, OpenAPI and license checks pass |
-| NS8 module unit tests | PASS, 19 tests | File/namespace safety, image pin, readiness, sanitized failures, bounded idempotent registration retry and restore refusal |
+| NS8 module unit tests | PASS, 23 tests | File/namespace safety, image pin, readiness, sanitized failures, bounded idempotent registration retry and restore refusal |
 | UI settings tests | PASS, 3 tests | Saved selections, round-trip settings and discovery failure |
 | UI lint/build | PASS | Lint now targets `src`; production build retains vendor-size warnings |
 | Foo account enrollment | PASS | Exact approved `foo1`; incorrect first `foo2` login rejected; explicit authenticated confirmation; two initial instance roles only |
-| Live account/API/Explorer suite | PASS, with separate protocol/workflow runs | `tests/integration/live_oidc.py`; real TLS Code + S256; two accounts; reviewed create/modify, attribution, idempotency and immediate revocation; full deployed repetition still required |
-| CI and deployed-artifact retest | NOT_RUN | Required after source commit/push; outcome will be updated from actual CI/deployment |
-| Native encrypted backup and fresh persistence restore | NOT_RUN | Fixture preparation in progress; no production recovery claim |
+| Live account/API/Explorer suite | PASS, 19 checks after fresh-volume recovery | `tests/integration/live_oidc.py`; real TLS Code + S256; both accounts; all six Explorer pages, reviewed create/modify, self-review denial, attribution, idempotency and immediate revocation |
+| CI and deployment | PASS | Local checks, publishing and all six real lifecycle cases on both Debian 13 and Rocky 9; immutable `dbbca92f856793fbbeff430b7c4c7ef29599c006` deployed through native `update-module` |
+| Native encrypted backup and fresh persistence restore | PASS, same instance | Native backup job 8, Restic full data check, encrypted transport extraction, corruption refusal, interrupted import and retry, nine guarded-recovery/release checks; original volumes retained |
+| Complete pod restart | PASS | Starting the enabled application unit pulled up required backends; restored volume references and real readiness preserved |
 | Shared node reboot | NOT_RUN | A service/pod restart is not a reboot; the shared node was not rebooted |
 
 The live suite uses protected operator-supplied credential files and server-side
@@ -45,6 +46,54 @@ remain final, and client secrets are not rotated during retry. This addresses th
 observed Keycloak federation/update race. The direct readiness probe remains
 bounded at 15 seconds; the original 3-second probe was shorter than measured
 valid readiness execution.
+
+## Reproducible site evidence and limits
+
+[Sanitized acceptance evidence](evidence/makako-account-recovery.json) records
+account roles, source/runtime pins and executed checks. The deployment uses C1
+`v0.1.0rc2` at `d6d9f8614c8dfd52591ec1d2402438f7b6a626f7`; its configuration
+digest is `d3d2f8c47461865dfecda5f4b9c27eb5d07c1de0d6c7f52b135a2fb750738127`.
+The module OCI archive checksum is
+`91dafa6edd8ef6d6da9a2c715636695613dc402b356263ce9822e088caf54b42`.
+Backend digests and declared versions are in `integration-lock.json`; this site
+uses the NS8 IdP development claim extension `3e801d22` and Keycloak 26.7.4.
+Its upstream provider release remains pending; no stable-provider certification
+or general production qualification is implied.
+
+CI evidence: [local checks](https://github.com/Stell0/ns8-cone/actions/runs/38055510275),
+[publication](https://github.com/Stell0/ns8-cone/actions/runs/38055510311),
+[real QEMU lifecycle](https://github.com/Stell0/ns8-cone/actions/runs/38055577878),
+and [schema documentation](https://github.com/Stell0/ns8-cone/actions/runs/38050881129).
+Earlier failing runs exposed test keyword/JSON transport issues, duplicate
+configuration output, and an expected guard refusal exhausting the systemd start
+limit. These were corrected, committed, published and retested. Recovery release
+now resets the failed unit only after C1 verification/release succeeds.
+
+Executed operator commands included:
+
+```sh
+api-cli run update-module --data '{"module_url":"ghcr.io/stell0/cone:dbbca92f856793fbbeff430b7c4c7ef29599c006","instances":["cone8"]}'
+api-cli run run-backup --data '{"id":8}'
+runagent -m cone8 restic-wrapper --backup 8 check --read-data
+runagent -m cone8 systemctl --user stop cone.service
+runagent -m cone8 systemctl --user start cone-app.service
+```
+
+Recovery used the documented `cone-recovery restore`, `verify`, and `release`
+commands against an extracted encrypted version-2 snapshot, with protected
+continuity evidence and fresh normal user tokens. The exact security snapshot
+accepted was `2026-10-10T12:57:33.498591+00:00`. Verification refused wrong
+namespace, stale attestation, the wrong user's token and changed proof; startup
+remained guarded until fresh verification and explicit release. Identity,
+instance/IRI, store/model identifiers and internal credentials survived updates,
+restart and recovery.
+
+The internal cluster repository qualifies encrypted transport and local
+same-instance recovery; it is not off-node disaster recovery. Native restoration
+into a new module ID remains guarded pending an original-client ownership
+migration contract. Shared-node reboot and browser-engine automation are NOT_RUN.
+Keep `production_ready=false` until those broader lifecycle/provider requirements
+are qualified. The historical sections below describe their earlier revisions.
 
 ## Earlier operational update — before owner-authorized reset
 
@@ -88,7 +137,7 @@ The corrected backend startup and explicit all-unit restart pass. This was a
 service restart test, not a node reboot. The temporary modules, registry and scoped
 registry configuration were removed. Existing services were not reconfigured.
 
-## Not run / blocked
+## Historical limitations — 2026-10-06
 
 - Full C1 installation, external-IdP enrollment and retry-safe bootstrap: required
   C1 contracts are absent at the pinned release.
