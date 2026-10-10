@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'imageroot/pypkg'))
-from cone_recovery import manifest, volumes, ensure_owned_volumes
+from cone_recovery import manifest, volumes, ensure_owned_volumes, release
 
 class RecoveryTests(unittest.TestCase):
     def setUp(self):
@@ -69,3 +69,20 @@ class RecoveryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'ambiguous_recovery_volume'):
                 ensure_owned_volumes(guard,'a'*64)
             mutation.assert_not_called()
+
+    def test_public_release_precedes_start_limit_reset_and_publication(self):
+        private=self.directory/'private';private.mkdir(mode=0o700)
+        guard=private/'restoring.json'
+        guard.write_text(json.dumps({'snapshot_created_at':'2026-10-10T12:00:00+00:00'}))
+        with patch('cone_recovery.proof_files',return_value=()), patch('cone_recovery.operator',side_effect=RuntimeError('refused')), patch('cone_recovery.run') as service:
+            with self.assertRaises(RuntimeError):
+                release(Path('/proof'),Path('/token'),'2026-10-10T12:00:00+00:00','test','operator')
+            self.assertTrue(guard.exists())
+            service.assert_not_called()
+        with patch('cone_recovery.proof_files',return_value=()), patch('cone_recovery.operator',return_value={'released':True}), patch('cone_recovery.run') as service:
+            release(Path('/proof'),Path('/token'),'2026-10-10T12:00:00+00:00','test','operator')
+            self.assertEqual([c.args[0] for c in service.call_args_list],[
+                ['systemctl','--user','reset-failed','cone-app.service'],
+                ['systemctl','--user','start','cone-app.service']])
+            self.assertFalse(guard.exists())
+            self.assertTrue((private/'last-recovery.json').exists())

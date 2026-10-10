@@ -187,6 +187,9 @@ def release(evidence, token, accepted, reason, operator_name):
     # marker only after success, then start the ordinary guarded service.
     write_json(private/'last-recovery.json',guard)
     (private/'restoring.json').unlink()
+    # Expected guard refusals can exhaust Restart=on-failure's start limit.
+    # C1 has already verified and released its guard; reset before publication.
+    run(['systemctl','--user','reset-failed','cone-app.service'])
     run(['systemctl','--user','start','cone-app.service'])
     for name in ('recovery-proof.json','recovery-token'):
         (private/'application'/name).unlink(missing_ok=True)
